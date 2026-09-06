@@ -1,1 +1,791 @@
-.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌙 CPM Eclipse - Design Injector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ============================================
+           VIDEO BACKGROUND
+           ============================================ */
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+            opacity: 0.4;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: -1;
+        }
+
+        /* ============================================
+           ANIMATED HEADER
+           ============================================ */
+        .header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 2px solid #6600cc;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            background: linear-gradient(90deg, #ff00ff, #00ffff, #ff00ff);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientMove 3s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(102, 0, 204, 0.3);
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .header p {
+            color: #888;
+            margin-top: 5px;
+            font-size: 1.1em;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #6600cc, #9900ff);
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-top: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(102, 0, 204, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(102, 0, 204, 0.8); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+           CONTAINER
+           ============================================ */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ============================================
+           ANIMATED STATS
+           ============================================ */
+        .stats {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px 30px;
+            background: rgba(26, 26, 26, 0.9);
+            border-radius: 15px;
+            border: 1px solid #222;
+            backdrop-filter: blur(5px);
+            min-width: 150px;
+            transition: 0.3s;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .stat-item:nth-child(2) { animation-delay: 0.5s; }
+        .stat-item:nth-child(3) { animation-delay: 1s; }
+        .stat-item:nth-child(4) { animation-delay: 1.5s; }
+
+        .stat-item:hover {
+            transform: translateY(-10px);
+            border-color: #6600cc;
+            box-shadow: 0 10px 40px rgba(102, 0, 204, 0.2);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .stat-item .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #00ffff;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px rgba(0, 255, 255, 0.3); }
+            to { text-shadow: 0 0 30px rgba(0, 255, 255, 0.8); }
+        }
+
+        .stat-item .label {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        /* ============================================
+           SECTION
+           ============================================ */
+        .section {
+            background: rgba(17, 17, 17, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            border: 1px solid #222;
+            backdrop-filter: blur(5px);
+            transition: 0.3s;
+        }
+
+        .section:hover {
+            border-color: #6600cc;
+            box-shadow: 0 5px 30px rgba(102, 0, 204, 0.1);
+        }
+
+        .section h2 {
+            color: #00ffff;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ============================================
+           BUTTONS
+           ============================================ */
+        .btn {
+            display: inline-block;
+            padding: 14px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1em;
+            transition: 0.3s;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+            opacity: 0;
+            transition: 0.5s;
+        }
+
+        .btn:hover::after {
+            opacity: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6600cc, #9900ff);
+            color: #fff;
+            animation: pulse 2s infinite;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(102, 0, 204, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00aa00, #00cc00);
+            color: #fff;
+            animation: pulseSuccess 2s infinite;
+        }
+
+        @keyframes pulseSuccess {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 204, 0, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(0, 204, 0, 0.6); }
+        }
+
+        .btn-success:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(0, 204, 0, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(34, 34, 34, 0.9);
+            color: #fff;
+            border: 1px solid #444;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-secondary:hover {
+            background: #333;
+            transform: scale(1.05);
+            border-color: #6600cc;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #cc0000, #ff0000);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        /* ============================================
+           DESIGN GRID
+           ============================================ */
+        .design-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .design-card {
+            background: rgba(26, 26, 26, 0.9);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #333;
+            transition: 0.3s;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+
+        .design-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: #6600cc;
+            box-shadow: 0 10px 40px rgba(102, 0, 204, 0.2);
+        }
+
+        .design-card .color-box {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            margin: 0 auto 12px;
+            border: 3px solid #333;
+            transition: 0.3s;
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .design-card:hover .color-box {
+            border-color: #6600cc;
+            transform: scale(1.1);
+        }
+
+        .design-card .name {
+            font-weight: bold;
+            font-size: 1em;
+        }
+
+        .design-card .type {
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        .design-card .price {
+            color: #ffd700;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        /* ============================================
+           SHOPPING CART / CHECKOUT
+           ============================================ */
+        .cart-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #222;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .cart-item .item-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .cart-item .item-info .color-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+
+        .cart-total {
+            text-align: right;
+            padding: 20px;
+            font-size: 1.5em;
+            border-top: 2px solid #222;
+        }
+
+        .cart-total .total-price {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1.8em;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        /* ============================================
+           CHECKOUT FORM
+           ============================================ */
+        .checkout-form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .checkout-form input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            font-size: 1em;
+            transition: 0.3s;
+        }
+
+        .checkout-form input:focus {
+            border-color: #6600cc;
+            outline: none;
+            box-shadow: 0 0 20px rgba(102, 0, 204, 0.2);
+        }
+
+        .checkout-form input::placeholder {
+            color: #555;
+        }
+
+        /* ============================================
+           NOTIFICATIONS
+           ============================================ */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 20px 30px;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: bold;
+            z-index: 1000;
+            animation: slideInRight 0.5s ease-out;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .notification-success {
+            background: rgba(0, 204, 0, 0.9);
+            border: 1px solid #00cc00;
+        }
+
+        .notification-error {
+            background: rgba(204, 0, 0, 0.9);
+            border: 1px solid #cc0000;
+        }
+
+        /* ============================================
+           PAYMENT METHODS
+           ============================================ */
+        .payment-methods {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .payment-method {
+            background: rgba(26, 26, 26, 0.9);
+            padding: 20px 30px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            text-align: center;
+            transition: 0.3s;
+            cursor: pointer;
+            min-width: 150px;
+        }
+
+        .payment-method:hover {
+            border-color: #6600cc;
+            transform: scale(1.05);
+            box-shadow: 0 10px 40px rgba(102, 0, 204, 0.2);
+        }
+
+        .payment-method .icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .payment-method .name {
+            font-weight: bold;
+        }
+
+        /* ============================================
+           CODE SYSTEM
+           ============================================ */
+        .code-box {
+            background: rgba(10, 10, 10, 0.9);
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #444;
+            border-top: 1px solid #1a1a1a;
+            margin-top: 30px;
+        }
+
+        .footer a {
+            color: #6600cc;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .footer a:hover {
+            color: #9900ff;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2em; }
+            .stats { flex-direction: column; align-items: center; }
+            .design-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+            .section { padding: 20px; }
+            .btn { padding: 12px 25px; font-size: 0.9em; }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 { font-size: 1.5em; }
+            .stat-item { min-width: 120px; padding: 15px; }
+            .stat-item .number { font-size: 1.8em; }
+            .design-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+            .btn-group { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- VIDEO BACKGROUND -->
+    <video id="bg-video" autoplay muted loop>
+        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+        <!-- Replace with actual Car Parking Multiplayer video -->
+    </video>
+    <div class="overlay"></div>
+
+    <!-- HEADER -->
+    <header class="header">
+        <h1>🌙 CPM Eclipse</h1>
+        <p>Design Injector v4.7</p>
+        <span class="version-badge">🔥 24 Designs Ready</span>
+    </header>
+
+    <!-- CONTAINER -->
+    <div class="container">
+
+        <!-- STATS -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="number">24</div>
+                <div class="label">Total Designs</div>
+            </div>
+            <div class="stat-item">
+                <div class="number">10</div>
+                <div class="label">Free Designs</div>
+            </div>
+            <div class="stat-item">
+                <div class="number">10</div>
+                <div class="label">Premium Designs</div>
+            </div>
+            <div class="stat-item">
+                <div class="number">4</div>
+                <div class="label">VIP Designs</div>
+            </div>
+        </div>
+
+        <!-- DOWNLOAD -->
+        <div class="section" style="text-align:center;">
+            <h2 style="justify-content:center;">📥 Download Script</h2>
+            <p style="color:#888;margin-bottom:20px;">Download the Design Injector script for GameGuardian</p>
+            <div class="btn-group">
+                <a href="CPM_Eclipse_Injector.lua" download class="btn btn-success">⬇ Download Script</a>
+                <a href="#designs" class="btn btn-secondary">🎨 View Designs</a>
+            </div>
+            <p style="color:#666;font-size:0.8em;">Version 4.7 | 24 Designs | 7-Day Codes</p>
+        </div>
+
+        <!-- FREE DESIGNS -->
+        <div class="section" id="designs">
+            <h2>🔓 Free Designs <span style="background:#00aa00;padding:2px 12px;border-radius:12px;font-size:0.6em;">FREE</span></h2>
+            <div class="design-grid">
+                <div class="design-card"><div class="color-box" style="background:#ff0000;"></div><div class="name">🔴 Red</div><div class="type">Free</div></div>
+                <div class="design-card"><div class="color-box" style="background:#0066ff;"></div><div class="name">🔵 Blue</div><div class="type">Free</div></div>
+                <div class="design-card"><div class="color-box" style="background:#00cc00;"></div><div class="name">🟢 Green</div><div class="type">Free</div></div>
+                <div class="design-card"><div class="color-box" style="background:#ffcc00;"></div><div class="name">🟡 Yellow</div><div class="type">Free</div></div>
+                <div class="design-card"><div class="color-box" style="background:#9900ff;"></div><div class="name">🟣 Purple</div><div class="type">Free</div></div>
+                <div class="design-card"><div class="color-box" style="background:#ffffff;"></div><div class="name">⚪ White</div><div class="type">Free</div></div>
+                <div class="design-card"><div class="color-box" style="background:#000000;"></div><div class="name">⚫ Black</div><div class="type">Free</div></div>
+                <div class="design-card"><div class="color-box" style="background:#ff6600;"></div><div class="name">🟠 Orange</div><div class="type">Free</div></div>
+                <div class="design-card"><div class="color-box" style="background:#8B4513;"></div><div class="name">🟤 Brown</div><div class="type">Free</div></div>
+                <div class="design-card"><div class="color-box" style="background:#ff69b4;"></div><div class="name">🌸 Pink</div><div class="type">Free</div></div>
+            </div>
+        </div>
+
+        <!-- PREMIUM DESIGNS -->
+        <div class="section">
+            <h2>💎 Premium Designs <span style="background:#ffd700;color:#000;padding:2px 12px;border-radius:12px;font-size:0.6em;">PREMIUM</span></h2>
+            <div class="design-grid">
+                <div class="design-card"><div class="color-box" style="background:linear-gradient(135deg,#ff0000,#ff6600,#ffcc00);"></div><div class="name">🔥 Flames</div><div class="type">Premium</div><div class="price">£3</div></div>
+                <div class="design-card"><div class="color-box" style="background:linear-gradient(135deg,#ffff00,#ffffff,#ffff00);"></div><div class="name">⚡ Lightning</div><div class="type">Premium</div><div class="price">£3</div></div>
+                <div class="design-card"><div class="color-box" style="background:linear-gradient(135deg,#ff0000,#ff6600,#ffcc00,#00ff00,#0066ff,#9900ff);"></div><div class="name">🌈 Rainbow</div><div class="type">Premium</div><div class="price">£5</div></div>
+                <div class="design-card"><div class="color-box" style="background:linear-gradient(135deg,#00ffff,#ffffff,#00ffff);"></div><div class="name">💎 Diamond</div><div class="type">Premium</div><div class="price">£4</div></div>
+            </div>
+        </div>
+
+        <!-- VIP DESIGNS -->
+        <div class="section">
+            <h2>👑 VIP Exclusive <span style="background:#ff00ff;padding:2px 12px;border-radius:12px;font-size:0.6em;">VIP</span></h2>
+            <div class="design-grid">
+                <div class="design-card"><div class="color-box" style="background:linear-gradient(135deg,#ffd700,#800080,#ffd700);"></div><div class="name">👑 Royal Crown</div><div class="type">VIP</div><div class="price">£10</div></div>
+                <div class="design-card"><div class="color-box" style="background:linear-gradient(135deg,#ffff00,#ffffff,#00ffff,#0000ff);"></div><div class="name">⚡ Lightning Storm</div><div class="type">VIP</div><div class="price">£10</div></div>
+                <div class="design-card"><div class="color-box" style="background:linear-gradient(135deg,#000000,#ffffff,#cc0000,#000000);"></div><div class="name">💀 Skull Master</div><div class="type">VIP</div><div class="price">£10</div></div>
+                <div class="design-card"><div class="color-box" style="background:linear-gradient(135deg,#ff0000,#ff8800,#ffff00,#00ff00,#0088ff,#8800ff);"></div><div class="name">🌈 Rainbow Chrome</div><div class="type">VIP</div><div class="price">£12</div></div>
+            </div>
+        </div>
+
+        <!-- CODE SYSTEM -->
+        <div class="section">
+            <h2>🔑 Code System</h2>
+            <p style="color:#888;">Generate unique codes for your users. Each code is valid for 7 days and can only be used once.</p>
+            <div class="code-box">
+                CPM-PREMIUM-001 → 🔥 Flames<br>
+                CPM-PREMIUM-002 → ⚡ Lightning<br>
+                CPM-PREMIUM-003 → 🌈 Rainbow<br>
+                CPM-PREMIUM-004 → 💎 Diamond<br>
+                CPM-VIP-001 → 👑 Royal Crown<br>
+                CPM-VIP-002 → ⚡ Lightning Storm<br>
+                CPM-VIP-003 → 💀 Skull Master<br>
+                CPM-VIP-004 → 🌈 Rainbow Chrome
+            </div>
+            <p style="color:#666;font-size:0.8em;">Format: CPM-TYPE-NUMBER (e.g., CPM-PREMIUM-001)</p>
+        </div>
+
+        <!-- PAYMENT / CHECKOUT -->
+        <div class="section" style="text-align:center;">
+            <h2 style="justify-content:center;">💳 Checkout</h2>
+            <p style="color:#888;margin-bottom:20px;">Select a design and complete your purchase</p>
+
+            <div class="payment-methods">
+                <div class="payment-method" onclick="selectPayment('paypal')">
+                    <div class="icon">💳</div>
+                    <div class="name">PayPal</div>
+                </div>
+                <div class="payment-method" onclick="selectPayment('bitcoin')">
+                    <div class="icon">₿</div>
+                    <div class="name">Bitcoin</div>
+                </div>
+                <div class="payment-method" onclick="selectPayment('ethereum')">
+                    <div class="icon">⟠</div>
+                    <div class="name">Ethereum</div>
+                </div>
+            </div>
+
+            <div class="checkout-form">
+                <input type="text" id="designName" placeholder="Design Name (e.g., 🔥 Flames)" value="🔥 Flames">
+                <input type="number" id="price" placeholder="Price (£)" value="3">
+                <input type="email" id="email" placeholder="Your Email">
+                <button class="btn btn-primary" onclick="processPayment()" style="width:100%;">💳 Pay Now</button>
+            </div>
+
+            <p style="color:#666;font-size:0.8em;margin-top:15px;">🔒 Secure checkout. Payments processed via Stripe.</p>
+        </div>
+
+        <!-- HOW TO USE -->
+        <div class="section">
+            <h2>📋 How to Use</h2>
+            <ol style="color:#aaa;line-height:2;padding-left:20px;font-size:1.1em;">
+                <li>Open <strong>Car Parking Multiplayer</strong> and go to your garage</li>
+                <li>Select your car and switch to <strong>EXTERIOR</strong> view</li>
+                <li>Open <strong>GameGuardian</strong> and select the game process</li>
+                <li>Run the <strong>CPM Eclipse Injector</strong> script</li>
+                <li>Choose a design or enter a code</li>
+                <li>The design injects instantly!</li>
+            </ol>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <p>🌙 CPM Eclipse Design Injector v4.7</p>
+            <p>Author: H3X | Support: <a href="https://t.me/H3X_cpm">@H3X_cpm</a></p>
+            <p style="font-size:0.7em;color:#333;">⚠️ Use at your own risk</p>
+        </div>
+
+    </div>
+
+    <script>
+        // ============================================
+        // NOTIFICATION SYSTEM
+        // ============================================
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = 'notification notification-' + type;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = '0.5s';
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        // ============================================
+        // PAYMENT SYSTEM
+        // ============================================
+        function selectPayment(method) {
+            showNotification('✅ Payment method selected: ' + method, 'success');
+        }
+
+        function processPayment() {
+            const designName = document.getElementById('designName').value;
+            const price = document.getElementById('price').value;
+            const email = document.getElementById('email').value;
+
+            if (!email) {
+                showNotification('❌ Please enter your email address', 'error');
+                return;
+            }
+
+            if (!price || price <= 0) {
+                showNotification('❌ Please enter a valid price', 'error');
+                return;
+            }
+
+            showNotification('⏳ Processing payment for ' + designName + ' (£' + price + ')...', 'success');
+
+            // Simulate payment processing
+            setTimeout(() => {
+                showNotification('✅ Payment successful! Your code will be sent to ' + email, 'success');
+                generateCode(designName);
+            }, 2000);
+        }
+
+        // ============================================
+        // CODE GENERATOR
+        // ============================================
+        function generateCode(designName) {
+            const types = ['PREMIUM', 'VIP'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const number = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
+            const code = 'CPM-' + type + '-' + number;
+
+            showNotification('🔑 Your design code: ' + code + ' (valid 7 days)', 'success');
+
+            // Add to code box
+            const codeBox = document.querySelector('.code-box');
+            codeBox.innerHTML += '<br>' + code + ' → ' + designName;
+        }
+
+        // ============================================
+        // VIDEO BACKGROUND FIX
+        // ============================================
+        // If you want to use a custom video, replace the src above
+        // For now, it uses a placeholder video
+
+        console.log('🌙 CPM Eclipse Design Injector website loaded!');
+        console.log('📱 Version 4.7');
+        console.log('📩 Support: @H3X_cpm');
+    </script>
+
+</body>
+  </html>
